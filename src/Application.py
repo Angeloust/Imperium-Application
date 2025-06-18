@@ -7,6 +7,7 @@ import asyncio
 import discord
 import logging
 
+from Server import keep_alive
 from discord.ext import commands
 from rgbprint import gradient_print
 from discord.ui import View, Button
@@ -493,4 +494,5 @@ async def language_cmd(interaction: discord.Interaction, mensaje: str):
 
 
 # RUN APPLICATION
+keep_alive()
 bot.run(TOKEN)
