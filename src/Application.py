@@ -132,8 +132,8 @@ if not os.path.exists(filename):
 
 template_data = load_template(filename)
 
-TOKEN = template_data.get("TOKEN", "")
-CLIENT_ID = template_data.get("CLIENT_ID", "")
+TOKEN = os.environ.get("TOKEN", template_data.get("TOKEN", ""))
+CLIENT_ID = os.environ.get("CLIENT_ID", template_data.get("CLIENT_ID", ""))
 
 if not TOKEN or not CLIENT_ID:
     print(ImperiumBlack.MAIN + f"   [>] The template file '{filename}' is missing TOKEN or CLIENT_ID.")
