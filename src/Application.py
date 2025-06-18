@@ -8,6 +8,8 @@ import discord
 import logging
 
 from server import keep_alive
+from pymongo import MongoClient
+
 from discord.ext import commands
 from rgbprint import gradient_print
 from discord.ui import View, Button
@@ -24,6 +26,15 @@ logging.getLogger("discord.webhook").setLevel(logging.ERROR) # WEBHOOKS
 logging.getLogger("discord").setLevel(logging.ERROR)         # FATAL ERRORS
 logging.getLogger("websockets").setLevel(logging.ERROR)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
+
+
+
+
+MONGO_URI = os.environ.get("MONGO_URI")
+client = MongoClient(MONGO_URI)
+
+db = client["ImperiumDB"]
+language_col = db["languages"]
 
 
 
@@ -78,27 +89,6 @@ def ascii_description(status_msg: str):
                                   {status_msg} 
 
                                  ╚═══                                          ═══╝ 
-"""
-
-
-
-
-"""      [ CHANGE APP PRESENCE ] --
-
-async def change_presence():
-
-    activities = [
-        discord.Streaming(name = ".gg/angelou ‎ .gg/sH5Mh2XfPC", url = "https://twitch.tv/angelouxddd"),
-        discord.Streaming(name = "Comiendo FIDEOSSS 🍝", url = "https://twitch.tv/angelouxddd")
-    ]
-
-    index = 0
-    await bot.wait_until_ready()
-    while not bot.is_closed():
-        await bot.change_presence(status = discord.Status.dnd, activity = activities[index])
-        index = (index + 1) % len(activities)
-        await asyncio.sleep(10)
-
 """
 
 
@@ -161,12 +151,6 @@ whitelist_data = load_whitelist(whitelist_file)
 
 
 
-
-# LANGUAGE LOADER
-language_file = os.path.join("..", ".assets", "Data", "languages.json")
-if not os.path.exists(language_file):
-    save_template(language_file, {})
-
 LANG_MESSAGES = {
     "es": {
         "support_language": "<:Imperium:1318478224690511963> **  ・  ** Idioma no soportado. Usa 'English' o 'Español'.",
@@ -191,58 +175,15 @@ LANG_MESSAGES = {
 }
 
 def get_user_lang(user_id):
-    langs = load_template(language_file)
-    return langs.get(str(user_id), "es")
+    data = language_col.find_one({"user_id": str(user_id)})
+    return data["lang"] if data else "es"
 
 def set_user_lang(user_id, lang):
-    langs = load_template(language_file)
-    langs[str(user_id)] = lang
-    save_template(language_file, langs)
-
-
-
-
-"""      [ SAVE COMMAND LOGS ] --
-
-command_log_file = os.path.join("..", ".assets", "Data", "logs.json")
-
-def load_command_logs(path):
-    if not os.path.exists(path):
-        with open(path, 'w', encoding = 'utf-8') as f:
-            json.dump([], f, indent = 4)
-    with open(path, 'r', encoding = 'utf-8') as f:
-        return json.load(f)
-
-def save_command_logs(path, data):
-    with open(path, 'w', encoding = 'utf-8') as f:
-        json.dump(data, f, indent = 4)
-
-def add_command_log(server_id, user_id, user_tag, command_name):
-    logs = load_command_logs(command_log_file)
-
-    server_entry = None
-    for entry in logs:
-        if server_id in entry:
-            server_entry = entry
-            break
-
-    if server_entry is None:
-        logs.append({server_id: [[user_id, user_tag, command_name]]})
-    else:
-        user_command_exists = False
-        for uc in server_entry[server_id]:
-            if uc[0] == user_id and uc[2] == command_name:
-                user_command_exists = True
-                break
-        
-        if not user_command_exists:
-            server_entry[server_id].append([user_id, user_tag, command_name])
-
-    save_command_logs(command_log_file, logs)
-
-"""
-
-
+    language_col.update_one(
+        {"user_id": str(user_id)},
+        {"$set": {"lang": lang}},
+        upsert=True
+    )
 
 
 # BLACKLIST LOADER
@@ -298,9 +239,9 @@ gradient_print(ascii_description("> [01] : Loading bot resources (SHARDS & TOKEN
 
 
 # EXTRA BUTTON SPAM
-class AntiAngelouView(View):
+class AntiAngelouView(discord.ui.View):
     def __init__(self, user_id, spam_message, delay, lang):
-        super().__init__(timeout = None)
+        super().__init__(timeout=None)
         self.user_id = user_id
         self.spam_message = spam_message
         self.delay = delay
@@ -308,21 +249,24 @@ class AntiAngelouView(View):
 
         label = "+5 Mensajes" if lang == "es" else "+5 Messages"
 
-        button = Button(
-            label = label,
-            style = ButtonStyle.gray,
-            emoji = PartialEmoji(name = "Imperium", id = 1318478224690511963),
-            custom_id = "extra_spam"
+        button = discord.ui.Button(
+            label=label,
+            style=discord.ButtonStyle.gray,
+            emoji=discord.PartialEmoji(name="Imperium", id=1318478224690511963),
+            custom_id="extra_spam"
         )
         button.callback = self.extra_spam
         self.add_item(button)
 
-    async def extra_spam(self, interaction):
-        await interaction.response.defer(ephemeral = True)
+    async def extra_spam(self, interaction: discord.Interaction):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("No puedes usar este botón.", ephemeral=True)
+            return
+        await interaction.response.defer(ephemeral=True)
         for _ in range(5):
             await interaction.followup.send(
                 self.spam_message,
-                allowed_mentions = AllowedMentions(everyone = True)
+                allowed_mentions=discord.AllowedMentions(everyone=True)
             )
             await asyncio.sleep(self.delay / 1000)
 
@@ -356,15 +300,6 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
     if interaction.guild and str(interaction.guild.id) in forbidden_guilds:
         await interaction.response.send_message(LANG_MESSAGES[lang]["unauthorized_guild"], ephemeral = True)
         return
-    
-    """      [ SAVE USER LOGS ] --
-
-    server_id = str(interaction.guild.id) if interaction.guild else "DM"
-    user_tag = f"{interaction.user.name}"
-
-    add_command_log(server_id, user_id, user_tag, "/antiangelou")
-
-    """
     
     default_message = (
         "\n"
@@ -401,27 +336,6 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
         for _ in range(5):
             await interaction.followup.send(spam_message, allowed_mentions = discord.AllowedMentions(everyone = True))
             await asyncio.sleep(delay / 1000)
-
-    """      [ OLD SPAMMER ] --
-
-    try:
-        if isinstance(interaction.channel, discord.DMChannel) or (
-            isinstance(interaction.channel, discord.TextChannel) and
-            interaction.channel.permissions_for(interaction.guild.me).send_messages):
-
-            await interaction.response.send_message(
-                LANG_MESSAGES[lang]["started"].format(delay = delay), ephemeral=True
-            )
-
-            task = asyncio.create_task(spam_loop())
-            if channel_id not in spam_tasks:
-                spam_tasks[channel_id] = []
-            spam_tasks[channel_id].append(task)
-
-        else:
-            await interaction.response.send_message(LANG_MESSAGES[lang]["no_perm"], ephemeral = True)
-
-    """
 
     try:
         if isinstance(interaction.channel, discord.DMChannel) or (
@@ -467,15 +381,6 @@ async def language_cmd(interaction: discord.Interaction, mensaje: str):
     if user_id in blacklist_data.get("blacklisted_users", []):
         await interaction.response.send_message(LANG_MESSAGES[black_lang]["blacklisted"], ephemeral = True)
         return
-    
-    """      [ SAVE USER LOGS ] --
-
-    user_tag = f"{interaction.user.name}"
-    server_id = str(interaction.guild.id) if interaction.guild else "DM"
-
-    add_command_log(server_id, user_id, user_tag, "/language")
-
-    """
 
     lang = mensaje.lower()
     if lang in ["english", "en", "inglés", "ingles"]:
