@@ -16,7 +16,7 @@
 ## • Screenshot
 
 <p align="center">
-  <img width="915" height="424" src=".assets/.img/ToolScreenshot.png">
+  <img width="915" height="424" src=".assets/.img/Screenshot.png">
 </p>
 
 ## Easy Installation
