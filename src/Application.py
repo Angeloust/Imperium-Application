@@ -73,39 +73,11 @@ def ascii_description(status_msg: str):
 """
 
 # TOKEN TEMPLATE FOUNDER
-filename = os.path.join("..", ".assets", "Data", "config.json")
-
-def load_template(path):
-    with open(path, 'r', encoding = 'utf-8') as file:
-        return json.load(file)
-
-def save_template(path, data):
-    os.makedirs(os.path.dirname(path), exist_ok = True)
-
-    with open(path, 'w', encoding = 'utf-8') as file:
-        json.dump(data, file, indent = 4)
-
-def validate_inputs(user_id):
-    if not user_id.isdigit():
-        print(ImperiumBlack.MAIN + f"   [>] 'CLIENT_ID' must contain only numbers.")
-
-if not os.path.exists(filename):
-    print(ImperiumBlack.MAIN + f"   [>] Template file not found. Creating a new one: " + filename)
-
-    empty_template = {
-        "TOKEN": "",
-        "CLIENT_ID": ""
-    }
-
-    save_template(filename, empty_template)
-
-template_data = load_template(filename)
-
-TOKEN = os.environ.get("TOKEN", template_data.get("TOKEN", ""))
-CLIENT_ID = os.environ.get("CLIENT_ID", template_data.get("CLIENT_ID", ""))
+TOKEN = os.environ.get("TOKEN", "")
+CLIENT_ID = os.environ.get("CLIENT_ID", "")
 
 if not TOKEN or not CLIENT_ID:
-    print(ImperiumBlack.MAIN + f"   [>] The template file '{filename}' is missing TOKEN or CLIENT_ID.")
+    print(ImperiumBlack.MAIN + f"   [>] The template file is missing TOKEN or CLIENT_ID.")
     exit(1)
 
 # WHITELIST LOADER
