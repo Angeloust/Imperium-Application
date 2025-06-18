@@ -7,7 +7,7 @@ import asyncio
 import discord
 import logging
 
-from Server import keep_alive
+from server import keep_alive
 from discord.ext import commands
 from rgbprint import gradient_print
 from discord.ui import View, Button
