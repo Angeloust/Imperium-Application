@@ -214,7 +214,7 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
 
     whitelist_data = load_whitelist(whitelist_file)
     user_id = str(interaction.user.id)
-    lang = get_user_lang(user_id)
+    
     is_whitelisted = user_id in whitelist_data.get("authorized_users", [])
 
     blacklist_data = load_blacklist(blacklist_file)
