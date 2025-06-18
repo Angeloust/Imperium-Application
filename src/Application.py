@@ -178,10 +178,8 @@ class AntiAngelouView(View):
         self.spam_message = spam_message
         self.delay = delay
 
-        label = "+5 Mensajes"
-
         button = Button(
-            label = label,
+            label = "+5 Mensajes",
             style = ButtonStyle.gray,
             emoji = PartialEmoji(name = "Imperium", id = 1318478224690511963),
             custom_id = "extra_spam"
@@ -210,22 +208,27 @@ class AntiAngelouView(View):
 )
 
 async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str | None = None):
-    forbidden_guilds = { "1358449508849025167", "1236760438566293557", "1229605011428868136" }
+    forbidden_guilds = {"1358449508849025167", "1236760438566293557", "1229605011428868136"}
 
     whitelist_data = load_whitelist(whitelist_file)
     user_id = str(interaction.user.id)
-    
     is_whitelisted = user_id in whitelist_data.get("authorized_users", [])
 
     blacklist_data = load_blacklist(blacklist_file)
     if user_id in blacklist_data.get("blacklisted_users", []):
-        await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No tienes permiso para usar este bot ya que estas blacklisteado.\n[ Consulta en el servidor para intentar revocar tu usuario de la blacklist. [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral = True)
+        await interaction.response.send_message(
+            "<:Imperium:1318478224690511963> **  ・  ** No tienes permiso para usar este bot ya que estás blacklisteado.\n[ Consulta en el servidor para intentar revocar tu usuario de la blacklist. [🦇](https://discord.gg/sH5Mh2XfPC) ]",
+            ephemeral=True
+        )
         return
 
     if interaction.guild and str(interaction.guild.id) in forbidden_guilds:
-        await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No puedes usar este comando aquí, intenta en otro servidor nerdo. :nerd:", ephemeral = True)
+        await interaction.response.send_message(
+            "<:Imperium:1318478224690511963> **  ・  ** No puedes usar este comando aquí, intenta en otro servidor nerdo. :nerd:",
+            ephemeral=True
+        )
         return
-    
+
     default_message = (
         "\n"
         "                _ _\n"
@@ -235,31 +238,28 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
     )
 
     if mensaje and not is_whitelisted and len(mensaje) > 80:
-        try:
-            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral=True)
-        except discord.NotFound:
-            try:
-                await interaction.followup.send("<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral=True)
-            except:
-                pass
+        await interaction.response.send_message(
+            "<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]",
+            ephemeral=True
+        )
         return
-        
+
     if is_whitelisted and mensaje and len(mensaje) > 1900:
-        try:
-            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**", ephemeral=True)
-        except discord.NotFound:
-            try:
-                await interaction.followup.send("<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**", ephemeral=True)
-            except:
-                pass
+        await interaction.response.send_message(
+            "<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**",
+            ephemeral=True
+        )
         return
-        
+
     spam_message = mensaje if mensaje else default_message
     channel_id = interaction.channel.id
 
     async def spam_loop():
         for _ in range(5):
-            await interaction.followup.send(spam_message, allowed_mentions = discord.AllowedMentions(everyone = True))
+            await interaction.followup.send(
+                spam_message,
+                allowed_mentions=discord.AllowedMentions(everyone=True)
+            )
             await asyncio.sleep(delay / 1000)
 
     try:
@@ -268,8 +268,8 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
             interaction.channel.permissions_for(interaction.guild.me).send_messages):
 
             await interaction.response.send_message(
-                f"<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviaran *5* mensajes por cada */antiangelou* ejecutado o cada boton gris presionado ].\n‎".format(delay=delay),
-                view=AntiAngelouView(interaction.user.id, spam_message, delay, lang),
+                f"<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviarán *5* mensajes por cada */antiangelou* ejecutado o cada botón gris presionado ].\n‎",
+                view=AntiAngelouView(interaction.user.id, spam_message, delay),
                 ephemeral=True
             )
 
@@ -279,11 +279,14 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
             spam_tasks[channel_id].append(task)
 
         else:
-            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No tengo permisos para poder enviar mensajes en este canal.", ephemeral=True)
+            await interaction.response.send_message(
+                "<:Imperium:1318478224690511963> **  ・  ** No tengo permisos para poder enviar mensajes en este canal.",
+                ephemeral=True
+            )
 
     except Exception:
         pass
-        
+
 # RUN APPLICATION
 keep_alive()
 bot.run(TOKEN)
