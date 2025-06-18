@@ -287,7 +287,7 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
             interaction.channel.permissions_for(interaction.guild.me).send_messages):
 
             await interaction.response.send_message(
-                "<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviaran *5* mensajes por cada */antiangelou* ejecutado o cada boton gris presionado ].\n‎".format(delay=delay),
+                f"<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviaran *5* mensajes por cada */antiangelou* ejecutado o cada boton gris presionado ].\n‎".format(delay=delay),
                 view=AntiAngelouView(interaction.user.id, spam_message, delay, lang),
                 ephemeral=True
             )
