@@ -91,9 +91,6 @@ def ascii_description(status_msg: str):
                                  ╚═══                                          ═══╝ 
 """
 
-
-
-
 # TOKEN TEMPLATE FOUNDER
 filename = os.path.join("..", ".assets", "Data", "config.json")
 
@@ -130,9 +127,6 @@ if not TOKEN or not CLIENT_ID:
     print(ImperiumBlack.MAIN + f"   [>] The template file '{filename}' is missing TOKEN or CLIENT_ID.")
     exit(1)
 
-
-
-
 # WHITELIST LOADER
 whitelist_file = os.path.join("..", ".assets", "Data", "whitelist.json")
 
@@ -149,43 +143,6 @@ def save_whitelist(path, data):
 
 whitelist_data = load_whitelist(whitelist_file)
 
-
-
-LANG_MESSAGES = {
-    "es": {
-        "support_language": "<:Imperium:1318478224690511963> **  ・  ** Idioma no soportado. Usa 'English' o 'Español'.",
-        "unauthorized_guild": "<:Imperium:1318478224690511963> **  ・  ** No puedes usar este comando aquí, intenta en otro servidor nerdo. :nerd:",
-        "free_limit": "<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]",
-        "long_msg": "<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**",
-        "no_perm": "<:Imperium:1318478224690511963> **  ・  ** No tengo permisos para poder enviar mensajes en este canal.",
-        "started": "<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviaran *5* mensajes por cada */antiangelou* ejecutado o cada boton gris presionado ].\n‎",
-        "language_changed": "<:Imperium:1318478224690511963> **  ・  ** Idioma actualizado a: **Español**.",
-        "blacklisted": "<:Imperium:1318478224690511963> **  ・  ** No tienes permiso para usar este bot ya que estas blacklisteado.\n[ Consulta en el servidor para intentar revocar tu usuario de la blacklist. [🦇](https://discord.gg/sH5Mh2XfPC) ]"
-    },
-    "en": {
-        "support_language": "<:Imperium:1318478224690511963> **  ・  ** Language not supported. Use 'English' o 'Spanish'.",
-        "unauthorized_guild": "<:Imperium:1318478224690511963> **  ・  ** You can't use this command here, try in another server nerd. :nerd:",
-        "free_limit": "<:Imperium:1318478224690511963> **  ・  ** You're using the free version. You can only send up to **80 characters**.\n[ Check our server to remove this limit: [🦇](https://discord.gg/sH5Mh2XfPC) ]",
-        "long_msg": "<:Imperium:1318478224690511963> **  ・  ** Custom message cannot exceed **1900 characters.**",
-        "no_perm": "<:Imperium:1318478224690511963> **  ・  ** I don't have permission to send messages in this channel.",
-        "started": "<:Imperium:1318478224690511963> **  ・  ** Bot successfully started with {delay} ms delay.\n[ Only *5* messages will be sent per */antiangelou* command or each gray button press ].\n‎",
-        "language_changed": "<:Imperium:1318478224690511963> **  ・  ** Language updated to: **English**.",
-        "blacklisted": "<:Imperium:1318478224690511963> **  ・  ** You don't have permission to use this bot because you are blacklisted.\n[ Please check our server to request removal from the blacklist. [🦇](https://discord.gg/sH5Mh2XfPC) ]"
-    }
-}
-
-def get_user_lang(user_id):
-    data = language_col.find_one({"user_id": str(user_id)})
-    return data["lang"] if data else "es"
-
-def set_user_lang(user_id, lang):
-    language_col.update_one(
-        {"user_id": str(user_id)},
-        {"$set": {"lang": lang}},
-        upsert=True
-    )
-
-
 # BLACKLIST LOADER
 blacklist_file = os.path.join("..", ".assets", "Data", "blacklist.json")
 
@@ -201,9 +158,6 @@ def save_blacklist(path, data):
         json.dump(data, file, indent = 4)
 
 blacklist_data = load_blacklist(blacklist_file)
-
-
-
 
 # APPLICATION BOT PREFIX
 intents = discord.Intents.all()
@@ -235,43 +189,33 @@ mainfuncs.clear()
 gradient_print(ascii_art_title(CLIENT_ID), start_color = (0xFF6EA3), end_color = (0xF7B8CF))
 gradient_print(ascii_description("> [01] : Loading bot resources (SHARDS & TOKEN)."), start_color = (0xFF6EA3), end_color = (0xF7B8CF))
 
-
-
-
 # EXTRA BUTTON SPAM
-class AntiAngelouView(discord.ui.View):
-    def __init__(self, user_id, spam_message, delay, lang):
-        super().__init__(timeout=None)
+class AntiAngelouView(View):
+    def __init__(self, user_id, spam_message, delay):
+        super().__init__(timeout = None)
         self.user_id = user_id
         self.spam_message = spam_message
         self.delay = delay
-        self.lang = lang
 
-        label = "+5 Mensajes" if lang == "es" else "+5 Messages"
+        label = "+5 Mensajes"
 
-        button = discord.ui.Button(
-            label=label,
-            style=discord.ButtonStyle.gray,
-            emoji=discord.PartialEmoji(name="Imperium", id=1318478224690511963),
-            custom_id="extra_spam"
+        button = Button(
+            label = label,
+            style = ButtonStyle.gray,
+            emoji = PartialEmoji(name = "Imperium", id = 1318478224690511963),
+            custom_id = "extra_spam"
         )
         button.callback = self.extra_spam
         self.add_item(button)
 
-    async def extra_spam(self, interaction: discord.Interaction):
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message("No puedes usar este botón.", ephemeral=True)
-            return
-        await interaction.response.defer(ephemeral=True)
+    async def extra_spam(self, interaction):
+        await interaction.response.defer(ephemeral = True)
         for _ in range(5):
             await interaction.followup.send(
                 self.spam_message,
-                allowed_mentions=discord.AllowedMentions(everyone=True)
+                allowed_mentions = AllowedMentions(everyone = True)
             )
             await asyncio.sleep(self.delay / 1000)
-
-
-
 
 # RAID COMMAND
 @bot.tree.command(
@@ -294,11 +238,11 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
 
     blacklist_data = load_blacklist(blacklist_file)
     if user_id in blacklist_data.get("blacklisted_users", []):
-        await interaction.response.send_message(LANG_MESSAGES[lang]["blacklisted"], ephemeral = True)
+        await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No tienes permiso para usar este bot ya que estas blacklisteado.\n[ Consulta en el servidor para intentar revocar tu usuario de la blacklist. [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral = True)
         return
 
     if interaction.guild and str(interaction.guild.id) in forbidden_guilds:
-        await interaction.response.send_message(LANG_MESSAGES[lang]["unauthorized_guild"], ephemeral = True)
+        await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No puedes usar este comando aquí, intenta en otro servidor nerdo. :nerd:", ephemeral = True)
         return
     
     default_message = (
@@ -311,20 +255,20 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
 
     if mensaje and not is_whitelisted and len(mensaje) > 80:
         try:
-            await interaction.response.send_message(LANG_MESSAGES[lang]["free_limit"], ephemeral=True)
+            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral=True)
         except discord.NotFound:
             try:
-                await interaction.followup.send(LANG_MESSAGES[lang]["free_limit"], ephemeral=True)
+                await interaction.followup.send("<:Imperium:1318478224690511963> **  ・  ** Estás usando la versión gratuita. Solo puedes usar hasta **80 caracteres**.\n[ Para eliminar este límite, consulte en nuestro servidor: [🦇](https://discord.gg/sH5Mh2XfPC) ]", ephemeral=True)
             except:
                 pass
         return
         
     if is_whitelisted and mensaje and len(mensaje) > 1900:
         try:
-            await interaction.response.send_message(LANG_MESSAGES[lang]["long_msg"], ephemeral=True)
+            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**", ephemeral=True)
         except discord.NotFound:
             try:
-                await interaction.followup.send(LANG_MESSAGES[lang]["long_msg"], ephemeral=True)
+                await interaction.followup.send("<:Imperium:1318478224690511963> **  ・  ** El mensaje personalizado no puede exceder **1900 caracteres.**", ephemeral=True)
             except:
                 pass
         return
@@ -343,7 +287,7 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
             interaction.channel.permissions_for(interaction.guild.me).send_messages):
 
             await interaction.response.send_message(
-                LANG_MESSAGES[lang]["started"].format(delay=delay),
+                "<:Imperium:1318478224690511963> **  ・  ** Bot iniciado exitosamente con un delay de {delay} ms.\n[ Solo se enviaran *5* mensajes por cada */antiangelou* ejecutado o cada boton gris presionado ].\n‎".format(delay=delay),
                 view=AntiAngelouView(interaction.user.id, spam_message, delay, lang),
                 ephemeral=True
             )
@@ -354,50 +298,11 @@ async def send(interaction: discord.Interaction, delay: int = 500, mensaje: str 
             spam_tasks[channel_id].append(task)
 
         else:
-            await interaction.response.send_message(LANG_MESSAGES[lang]["no_perm"], ephemeral=True)
+            await interaction.response.send_message("<:Imperium:1318478224690511963> **  ・  ** No tengo permisos para poder enviar mensajes en este canal.", ephemeral=True)
 
     except Exception:
         pass
-
-
-
-
-# LANGUAGE COMMAND
-@bot.tree.command(
-    name = "language",
-    description = "Cambia el idioma por defecto para los comandos."
-)
-
-@app_commands.describe(
-    mensaje = "Escoge un idioma: English or Spanish. [Proximamente más]"
-)
-
-async def language_cmd(interaction: discord.Interaction, mensaje: str):
-    user_id = str(interaction.user.id)
-
-    black_lang = get_user_lang(interaction.user.id)
-
-    blacklist_data = load_blacklist(blacklist_file)
-    if user_id in blacklist_data.get("blacklisted_users", []):
-        await interaction.response.send_message(LANG_MESSAGES[black_lang]["blacklisted"], ephemeral = True)
-        return
-
-    lang = mensaje.lower()
-    if lang in ["english", "en", "inglés", "ingles"]:
-        lang = "en"
-    elif lang in ["spanish", "es", "español", "espanol"]:
-        lang = "es"
-    else:
-        user_lang = get_user_lang(interaction.user.id)
-        await interaction.response.send_message(LANG_MESSAGES[user_lang]["support_language"].format(lang = mensaje), ephemeral = True)
-        return
-
-    set_user_lang(interaction.user.id, lang)
-    await interaction.response.send_message(LANG_MESSAGES[lang]["language_changed"].format(lang = mensaje), ephemeral = True)
-
-
-
-
+        
 # RUN APPLICATION
 keep_alive()
 bot.run(TOKEN)
