@@ -8,15 +8,11 @@ import discord
 import logging
 
 from server import keep_alive
-from pymongo import MongoClient
 
 from discord.ext import commands
 from rgbprint import gradient_print
 from discord.ui import View, Button
 from discord import app_commands, ButtonStyle, AllowedMentions, PartialEmoji
-
-
-
 
 # STOP SHARD & RATELIMIT LOGS
 logging.getLogger("discord.gateway").disabled = True         # SHARDS
@@ -27,18 +23,6 @@ logging.getLogger("discord").setLevel(logging.ERROR)         # FATAL ERRORS
 logging.getLogger("websockets").setLevel(logging.ERROR)
 logging.getLogger("asyncio").setLevel(logging.ERROR)
 
-
-
-
-MONGO_URI = os.environ.get("MONGO_URI")
-client = MongoClient(MONGO_URI)
-
-db = client["ImperiumDB"]
-language_col = db["languages"]
-
-
-
-
 # MAIN FUNCTION'S
 class mainfuncs:
 
@@ -48,9 +32,6 @@ class mainfuncs:
     def title(args=None):
         os.system('mode con: cols=120 lines=30')
         os.system("title  Imperium [Application Spammer]  -  Made by Fushii") if args == None else os.system(f"title Web utils {args}")
-
-
-
 
 # BANNER COLOR
 class ImperiumStyle():
