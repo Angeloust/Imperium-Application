@@ -25,13 +25,8 @@ logging.getLogger("asyncio").setLevel(logging.ERROR)
 
 # MAIN FUNCTION'S
 class mainfuncs:
-
     def clear():
         os.system("cls") if os.name == "nt" else os.system("clear")
-
-    def title(args=None):
-        os.system('mode con: cols=120 lines=30')
-        os.system("title  Imperium [Application Spammer]  -  Made by Fushii") if args == None else os.system(f"title Web utils {args}")
 
 # BANNER COLOR
 class ImperiumStyle():
